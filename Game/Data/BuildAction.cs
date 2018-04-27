@@ -6,7 +6,7 @@
 		private readonly StructureType structureType;
 		private readonly UnitType unitType;
 
-		public BuildAction(int siteId, StructureType structureType, UnitType unitType)
+		public BuildAction(int siteId, StructureType structureType, UnitType unitType = UnitType.None)
 		{
 			this.siteId = siteId;
 			this.structureType = structureType;
@@ -15,7 +15,9 @@
 
 		public override string ToString()
 		{
-			return $"BUILD {siteId} {structureType.ToString().ToUpper()}-{unitType.ToString().ToUpper()}";
+			if (structureType == StructureType.Barracks)
+				return $"BUILD {siteId} {structureType.ToString().ToUpper()}-{unitType.ToString().ToUpper()}";
+			return $"BUILD {siteId} {structureType.ToString().ToUpper()}";
 		}
 	}
 }
