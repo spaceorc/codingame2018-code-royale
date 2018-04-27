@@ -82,8 +82,7 @@ namespace Game.Data
 					int owner = int.Parse(inputs[4]); // -1 = No structure, 0 = Friendly, 1 = Enemy
 					int param1 = int.Parse(inputs[5]);
 					int param2 = int.Parse(inputs[6]);
-					if (structureType != -1)
-						state.structures.Add(siteId, new Structure(structureType, owner, param1, param2, mineGold, maxMineSize));
+					state.structures.Add(siteId, new Structure(structureType, owner, param1, param2, mineGold, maxMineSize));
 				}
 				int numUnits = int.Parse(readLine());
 				for (int i = 0; i < numUnits; i++)

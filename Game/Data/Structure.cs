@@ -6,16 +6,16 @@
 		public readonly int owner;
 		public readonly int param1;
 		public readonly int param2;
-		public readonly int mineGold;
+		public readonly int gold;
 		public readonly int maxMineSize;
 
-		public Structure(int structureType, int owner, int param1, int param2, int mineGold, int maxMineSize)
+		public Structure(int structureType, int owner, int param1, int param2, int gold, int maxMineSize)
 		{
 			this.structureType = (StructureType) structureType;
 			this.owner = owner;
 			this.param1 = param1;
 			this.param2 = param2;
-			this.mineGold = mineGold;
+			this.gold = gold;
 			this.maxMineSize = maxMineSize;
 		}
 
