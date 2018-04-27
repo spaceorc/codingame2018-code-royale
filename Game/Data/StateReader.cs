@@ -44,25 +44,60 @@ namespace Game.Data
 				return seed;
 			};
 		}
+		
+		public InitData ReadInitData()
+		{
+			var result = new InitData();
+			string[] inputs;
+			int numSites = int.Parse(Console.ReadLine());
+			for (int i = 0; i < numSites; i++)
+			{
+				inputs = Console.ReadLine().Split(' ');
+				int siteId = int.Parse(inputs[0]);
+				int x = int.Parse(inputs[1]);
+				int y = int.Parse(inputs[2]);
+				int radius = int.Parse(inputs[3]);
+				result.sites.Add(siteId, new Site(x, y, radius));
+			}
+			return result;
+		}
 
-		public State ReadState()
+		public State ReadState(InitData data)
 		{
 			try
 			{
 				var state = new State();
-				var inputs = readLine().Split(' ');
-				var opponentRow = int.Parse(inputs[0]);
-				var opponentCol = int.Parse(inputs[1]);
-				state.lastOpponentCoord = new Coord(opponentRow, opponentCol);
-				var validActionCount = int.Parse(readLine());
-				
-				for (var i = 0; i < validActionCount; i++)
+				var inputs = Console.ReadLine().Split(' ');
+				state.gold = int.Parse(inputs[0]);
+				state.touchedSite = int.Parse(inputs[1]); // -1 if none
+				for (int i = 0; i < data.sites.Count; i++)
 				{
-					inputs = readLine().Split(' ');
-					var row = int.Parse(inputs[0]);
-					var col = int.Parse(inputs[1]);
-					state.validCoords.Add(new Coord(row, col));
+					inputs = Console.ReadLine().Split(' ');
+					int siteId = int.Parse(inputs[0]);
+					int ignore1 = int.Parse(inputs[1]); // used in future leagues
+					int ignore2 = int.Parse(inputs[2]); // used in future leagues
+					int structureType = int.Parse(inputs[3]); // -1 = No structure, 2 = Barracks
+					int owner = int.Parse(inputs[4]); // -1 = No structure, 0 = Friendly, 1 = Enemy
+					int param1 = int.Parse(inputs[5]);
+					int param2 = int.Parse(inputs[6]);
+					if (structureType != -1)
+						state.structures.Add(siteId, new Structure(structureType, owner, param1, param2));
 				}
+				int numUnits = int.Parse(Console.ReadLine());
+				for (int i = 0; i < numUnits; i++)
+				{
+					inputs = Console.ReadLine().Split(' ');
+					int x = int.Parse(inputs[0]);
+					int y = int.Parse(inputs[1]);
+					int owner = int.Parse(inputs[2]);
+					int unitType = int.Parse(inputs[3]); // -1 = QUEEN, 0 = KNIGHT, 1 = ARCHER
+					int health = int.Parse(inputs[4]);
+					if (unitType == -1)
+						state.queens[owner] = new Queen(x, y, health);
+					else
+						state.units[owner].Add(new Unit(x, y, unitType, health));
+				}
+
 				state.random = new Random(getSeed());
 				state.countdown = new Countdown(90);
 				if (logToError)
