@@ -3,6 +3,14 @@ using Game.Data;
 
 namespace Game
 {
+	public static class Constants
+	{
+		public const double EPSILON = 1e-6;
+		public const int QUEEN_RADIUS = 30;
+		public const int WORLD_WIDTH = 1920;
+		public const int WORLD_HEIGHT = 1000;
+	}
+
 	public unsafe class EntryPoint
 	{
 		private static void Main(string[] args)

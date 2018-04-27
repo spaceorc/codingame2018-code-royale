@@ -6,7 +6,7 @@
 		private readonly int y;
 
 		public MoveAction(Point target)
-			: this(target.x, target.y)
+			: this((int)target.x, (int)target.y)
 		{
 		}
 

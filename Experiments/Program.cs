@@ -1,21 +1,25 @@
-﻿namespace Experiments
+﻿using Game;
+using Game.Data;
+
+namespace Experiments
 {
 	internal unsafe class Program
 	{
 		public static void Main()
 		{
-			//Console.Out.WriteLine(sizeof(Field));
-			//var player = 0;
-			//var strategy = new MonteCarloTreeSearchStrategy();
-			//var field = new Field("0|8|0|48|192|338|161|48|267|70|400|34|25|73|16|73|34|128|84|130|292|28|1");
+			var init = @"24|0 1762 845 65|1 158 155 65|2 1528 568 76|3 392 432 76|4 735 633 84|5 1185 367 84|6 997 612 72|7 923 388 72|8 1764 360 66|9 156 640 66|10 1762 617 68|11 158 383 68|12 394 667 66|13 1526 333 66|14 890 838 72|15 1030 162 72|16 656 396 71|17 1264 604 71|18 1431 822 88|19 489 178 88|20 758 173 83|21 1162 827 83|22 1355 165 75|23 565 835 75|";
+			var st = "79 8|0 202 3 0 0 1 -1|1 -1 -1 2 1 0 0|2 204 1 0 0 1 -1|3 -1 -1 0 1 -1 -1|4 -1 -1 -1 -1 -1 -1|5 -1 -1 -1 -1 -1 -1|6 -1 -1 -1 -1 -1 -1|7 -1 -1 -1 -1 -1 -1|8 231 3 1 0 380 353|9 -1 -1 -1 -1 -1 -1|10 180 2 0 0 1 -1|11 -1 -1 0 1 -1 -1|12 -1 -1 -1 -1 -1 -1|13 219 1 -1 -1 -1 -1|14 -1 -1 -1 -1 -1 -1|15 -1 -1 -1 -1 -1 -1|16 -1 -1 0 1 -1 -1|17 -1 -1 -1 -1 -1 -1|18 240 3 2 0 0 0|19 -1 -1 2 1 0 0|20 -1 -1 -1 -1 -1 -1|21 -1 -1 -1 -1 -1 -1|22 -1 -1 -1 -1 -1 -1|23 -1 -1 -1 -1 -1 -1|10|1377 322 1 0 13|1259 281 1 0 13|1522 445 1 0 13|1647 436 1 0 6|673 249 1 -1 45|893 476 0 0 24|1090 606 0 0 24|947 478 0 0 24|1073 558 0 0 24|1698 431 0 -1 44|seed:-196557443|";
 
-			//Dump(&field);
+			var stateReader = new StateReader(init);
+			var data = stateReader.ReadInitData();
 
-			//var gameAction = strategy.Decide(player, &field, new Countdown(1000), new Random(324128495));
-			//Console.Out.WriteLine(gameAction);
+			stateReader = new StateReader(st);
+			var state = stateReader.ReadState(data);
 
-			////gameAction = strategy.Decide(player, &field, new Countdown(900), new Random(324128495));
-			////Console.Out.WriteLine(gameAction);
+			var strategy = new Strategy(data);
+			var desision = strategy.Decide(state);
+
+			desision.Write();
 		}
 	}
 }

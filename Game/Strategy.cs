@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.Data;
 
@@ -7,6 +8,10 @@ namespace Game
 	public class Strategy
 	{
 		private readonly InitData data;
+		private Point startPos;
+		private int runPoint;
+		private List<KeyValuePair<int, Site>> nearestSites;
+		private KeyValuePair<int, Site> targetSite;
 
 		public Strategy(InitData data)
 		{
@@ -15,6 +20,13 @@ namespace Game
 
 		public Desision Decide(State state)
 		{
+			if (startPos == null)
+			{
+				startPos = new Point(state.queens[0]);
+				nearestSites = data.sites.OrderBy(x => startPos.QDistanceTo(x.Value)).ToList();
+			}
+			targetSite = nearestSites.FirstOrDefault(s => !state.structures.ContainsKey(s.Key) || state.structures[s.Key].owner == 1 && state.structures[s.Key].structureType != StructureType.Tower);
+
 			return new Desision
 			{
 				queenAction = ChooseQueenAction(state),
@@ -79,66 +91,108 @@ namespace Game
 
 		private IGameAction ChooseQueenAction(State state)
 		{
-			var nearestSites = data.sites.OrderBy(x => state.queens[0].QDistanceTo(x.Value)).ToList();
-			var targetSite = nearestSites.FirstOrDefault(s => !state.structures.ContainsKey(s.Key) || state.structures[s.Key].owner == 1 && state.structures[s.Key].structureType != StructureType.Tower);
+			if (TryEscape(state, out var gameAction))
+				return gameAction;
 
-			if (state.units[1].Any(u => u.DistanceTo(state.queens[0]) <= 100))
-			{
-				if (state.structures.Any(s => s.Value.owner == 0 && s.Value.structureType == StructureType.Tower))
-					return new BuildAction(
-						state.structures.First(s => s.Value.owner == 0 && s.Value.structureType == StructureType.Tower).Key,
-						StructureType.Tower);
+			if (TryBuildBasic(state, out gameAction))
+				return gameAction;
 
-				return new BuildAction(targetSite.Key, StructureType.Tower);
-			}
+			//if (TryUpgradeMines(state, out gameAction))
+			//	return gameAction;
 
-			if (targetSite.Value != null)
-			{
-				if (state.structures.Any(s => s.Value.owner == 1
-											&& s.Value.structureType == StructureType.Tower
-											&& data.sites[s.Key].DistanceTo(targetSite.Value) <= s.Value.TowerAttackRadius))
-				{
-					if (state.structures.Any(s => s.Value.owner == 0 && s.Value.structureType == StructureType.Tower))
-						return new BuildAction(
-							state.structures.First(s => s.Value.owner == 0 && s.Value.structureType == StructureType.Tower).Key,
-							StructureType.Tower);
-
-					return new BuildAction(targetSite.Key, StructureType.Tower);
-				}
-
-				for (int i = 1; i <= 10; i++)
-				{
-					if (i <= 5 && state.structures.Count(s =>
-						s.Value.owner == 0 && s.Value.structureType == StructureType.Mine) < i)
-						return new BuildAction(targetSite.Key, StructureType.Mine);
-
-					if (i <= 3 && state.structures.Count(s =>
-						s.Value.owner == 0 && s.Value.structureType == StructureType.Barracks &&
-						s.Value.BarracksCreepType == UnitType.Knight) < i)
-						return new BuildAction(targetSite.Key, StructureType.Barracks, UnitType.Knight);
-
-					if (state.structures.Count(s =>
-						s.Value.owner == 0 && s.Value.structureType == StructureType.Tower) < i)
-						return new BuildAction(targetSite.Key, StructureType.Tower);
-
-					if (i <= 1 && state.structures.Count(s =>
-						s.Value.owner == 0 && s.Value.structureType == StructureType.Barracks &&
-						s.Value.BarracksCreepType == UnitType.Archer) < i)
-						return new BuildAction(targetSite.Key, StructureType.Barracks, UnitType.Archer);
-
-					if (i <= 1 && state.structures.Count(s =>
-						s.Value.owner == 0 && s.Value.structureType == StructureType.Barracks &&
-						s.Value.BarracksCreepType == UnitType.Giant) < i)
-						return new BuildAction(targetSite.Key, StructureType.Barracks, UnitType.Giant);
-				}
-			}
-
-			if (state.structures.Any(s => s.Value.owner == 0 && s.Value.structureType == StructureType.Tower))
-				return new BuildAction(
-					state.structures.First(s => s.Value.owner == 0 && s.Value.structureType == StructureType.Tower).Key,
-					StructureType.Tower);
+			//if (TryBuildAdvanced(state, out gameAction))
+			//	return gameAction;
 
 			return new WaitAction();
+		}
+
+		private bool TryBuildBasic(State state, out IGameAction buildAction)
+		{
+			buildAction = null;
+			if (targetSite.Value == null || state.structures.Any(s => s.Value.owner == 1
+			                                                          && s.Value.structureType == StructureType.Tower
+			                                                          && data.sites[s.Key].DistanceTo(targetSite.Value) <=
+			                                                          s.Value.TowerAttackRadius))
+
+				return false;
+
+			if (state.structures.Count(s =>
+				    s.Value.owner == 0 && s.Value.structureType == StructureType.Mine) < 3)
+			{
+				buildAction = new BuildAction(targetSite.Key, StructureType.Mine);
+				return true;
+			}
+
+			if (state.structures.Count(s =>
+				    s.Value.owner == 0 && s.Value.structureType == StructureType.Barracks &&
+				    s.Value.BarracksCreepType == UnitType.Knight) < 1)
+			{
+				buildAction = new BuildAction(targetSite.Key, StructureType.Barracks, UnitType.Knight);
+				return true;
+			}
+
+			if (state.structures.Count(s =>
+				    s.Value.owner == 0 && s.Value.structureType == StructureType.Tower) < 3)
+			{
+				buildAction = new BuildAction(targetSite.Key, StructureType.Tower);
+				return true;
+			}
+
+			return false;
+		}
+
+		private bool TryEscape(State state, out IGameAction gameAction)
+		{
+			if (state.units[1].Any(u => u.DistanceTo(state.queens[0]) <= 300))
+			{
+				if (state.structures.Any(s => s.Value.owner == 0 && s.Value.structureType == StructureType.Tower))
+				{
+					var runTower = nearestSites.First(x =>
+						state.structures.TryGetValue(x.Key, out var s) && s.owner == 0 &&
+						s.structureType == StructureType.Tower);
+					var runStructure = state.structures[runTower.Key];
+					var runPoints = new[]
+					{
+						new Point(runTower.Value.x - runStructure.TowerAttackRadius * 2 / 3, runTower.Value.y),
+						new Point(runTower.Value.x, runTower.Value.y - runStructure.TowerAttackRadius * 2 / 3),
+						new Point(runTower.Value.x + runStructure.TowerAttackRadius * 2 / 3, runTower.Value.y),
+						new Point(runTower.Value.x, runTower.Value.y + runStructure.TowerAttackRadius * 2 / 3)
+					};
+					foreach (var point in runPoints)
+					{
+						point.Limit(Constants.QUEEN_RADIUS);
+						while (data.sites.Any(s => s.Key != runTower.Key && s.Value.DistanceTo(point) < s.Value.radius + Constants.QUEEN_RADIUS))
+							point.MoveTo(runTower.Value, 10);
+					}
+
+					if (state.units[1].Any(u => u.DistanceTo(state.queens[0]) <= 150))
+					{
+						if (state.queens[0].DistanceTo(runPoints[runPoint]) < Constants.QUEEN_RADIUS)
+						{
+							runPoint = (runPoint + 1) % runPoints.Length;
+							Console.Error.WriteLine($"RunPoint={runPoint}");
+						}
+
+						gameAction = new MoveAction(runPoints[runPoint]);
+						return true;
+					}
+
+					runPoint = Array.IndexOf(runPoints, runPoints.OrderByDescending(p => state.units[1].Max(u => u.DistanceTo(p))).First());
+					Console.Error.WriteLine($"RunPoint={runPoint}");
+					gameAction = new BuildAction(
+						runTower.Key,
+						StructureType.Tower);
+					return true;
+				}
+
+				{
+					gameAction = new BuildAction(targetSite.Key, StructureType.Tower);
+					return true;
+				}
+			}
+
+			gameAction = null;
+			return false;
 		}
 	}
 }

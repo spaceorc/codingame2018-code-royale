@@ -49,16 +49,18 @@ namespace Game.Data
 		{
 			var result = new InitData();
 			string[] inputs;
-			int numSites = int.Parse(Console.ReadLine());
+			int numSites = int.Parse(readLine());
 			for (int i = 0; i < numSites; i++)
 			{
-				inputs = Console.ReadLine().Split(' ');
+				inputs = readLine().Split(' ');
 				int siteId = int.Parse(inputs[0]);
 				int x = int.Parse(inputs[1]);
 				int y = int.Parse(inputs[2]);
 				int radius = int.Parse(inputs[3]);
 				result.sites.Add(siteId, new Site(x, y, radius));
 			}
+			if (logToError)
+				Console.Error.WriteLine();
 			return result;
 		}
 
@@ -67,26 +69,26 @@ namespace Game.Data
 			try
 			{
 				var state = new State();
-				var inputs = Console.ReadLine().Split(' ');
+				var inputs = readLine().Split(' ');
 				state.gold = int.Parse(inputs[0]);
 				state.touchedSite = int.Parse(inputs[1]); // -1 if none
 				for (int i = 0; i < data.sites.Count; i++)
 				{
-					inputs = Console.ReadLine().Split(' ');
+					inputs = readLine().Split(' ');
 					int siteId = int.Parse(inputs[0]);
-					int ignore1 = int.Parse(inputs[1]); // used in future leagues
-					int ignore2 = int.Parse(inputs[2]); // used in future leagues
+					int mineGold = int.Parse(inputs[1]); // used in future leagues
+					int maxMineSize = int.Parse(inputs[2]); // used in future leagues
 					int structureType = int.Parse(inputs[3]); // -1 = No structure, 2 = Barracks
 					int owner = int.Parse(inputs[4]); // -1 = No structure, 0 = Friendly, 1 = Enemy
 					int param1 = int.Parse(inputs[5]);
 					int param2 = int.Parse(inputs[6]);
 					if (structureType != -1)
-						state.structures.Add(siteId, new Structure(structureType, owner, param1, param2));
+						state.structures.Add(siteId, new Structure(structureType, owner, param1, param2, mineGold, maxMineSize));
 				}
-				int numUnits = int.Parse(Console.ReadLine());
+				int numUnits = int.Parse(readLine());
 				for (int i = 0; i < numUnits; i++)
 				{
-					inputs = Console.ReadLine().Split(' ');
+					inputs = readLine().Split(' ');
 					int x = int.Parse(inputs[0]);
 					int y = int.Parse(inputs[1]);
 					int owner = int.Parse(inputs[2]);
